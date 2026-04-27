@@ -323,8 +323,14 @@ async function addDokumentasi(e) {
 }
 async function addUser(e) {
   e.preventDefault(); const d=getFormData(e.target);
-  const data = {name:d.name,email:d.email,password:d.password||'Anggota123!',role:d.role,location:d.location||'Semua Titik',status:d.status||'Aktif'};
-  if (editingId && editingType==='users') { await apiPut('users',editingId,data); } else { await apiPost('users',data); }
+  const data = {name:d.name,email:d.email,role:d.role,location:d.location||'Semua Titik',status:d.status||'Aktif'};
+  if (editingId && editingType==='users') {
+    if (d.password) data.password = d.password;
+    await apiPut('users',editingId,data);
+  } else {
+    data.password = d.password || 'Anggota123!';
+    await apiPost('users',data);
+  }
   resetEditState('modalUser'); closeModal('modalUser'); await loadAllData(); renderAll();
 }
 
