@@ -2,6 +2,37 @@ const rupiah = n => new Intl.NumberFormat('id-ID', { style:'currency', currency:
 const qs  = s => document.querySelector(s);
 const qsa = s => document.querySelectorAll(s);
 
+/* ── API helper ───────────────────────────────────────────────────────────── */
+const API_BASE = '/api';
+async function api(endpoint, options = {}) {
+  const res = await fetch(`${API_BASE}/${endpoint}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  return res.json();
+}
+async function apiDelete(endpoint, id) {
+  await fetch(`${API_BASE}/${endpoint}/${id}`, { method: 'DELETE' });
+}
+async function apiPost(endpoint, data) {
+  return api(endpoint, { method: 'POST', body: data });
+}
+async function loadAllData() {
+  const [lokasi, relawan, penerima, donasi, paket, dokumentasi, users] = await Promise.all([
+    api('lokasi'), api('relawan'), api('penerima'), api('donasi'),
+    api('paket'), api('dokumentasi'), api('users'),
+  ]);
+  appData.lokasi = lokasi;
+  appData.relawan = relawan;
+  appData.penerima = penerima;
+  appData.donasi = donasi;
+  appData.paket = paket;
+  appData.dokumentasi = dokumentasi;
+  appData.users = users;
+}
+const appData = { lokasi:[], relawan:[], penerima:[], donasi:[], paket:[], dokumentasi:[], users:[] };
+
 /* ── SVG icon strings (dipakai di JS-generated HTML) ─────────────────────── */
 const SVG = {
   edit:  `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
@@ -62,13 +93,13 @@ function renderTable(id, rows, columns, onDelete) {
   }).join('');
 }
 
-/* Delete helpers */
-function delLokasi(i)   { appData.lokasi.splice(i, 1); }
-function delRelawan(i)  { appData.relawan.splice(i, 1); }
-function delPenerima(i) { appData.penerima.splice(i, 1); }
-function delDonasi(i)   { appData.donasi.splice(i, 1); }
-function delPaket(i)    { appData.paket.splice(i, 1); }
-function delUser(i)     { appData.users.splice(i, 1); }
+/* Delete helpers — now call API then refresh */
+async function delLokasi(i)   { await apiDelete('lokasi', appData.lokasi[i].id); await loadAllData(); renderAll(); initMap(); }
+async function delRelawan(i)  { await apiDelete('relawan', appData.relawan[i].id); await loadAllData(); renderAll(); }
+async function delPenerima(i) { await apiDelete('penerima', appData.penerima[i].id); await loadAllData(); renderAll(); }
+async function delDonasi(i)   { await apiDelete('donasi', appData.donasi[i].id); await loadAllData(); renderAll(); }
+async function delPaket(i)    { await apiDelete('paket', appData.paket[i].id); await loadAllData(); renderAll(); }
+async function delUser(i)     { await apiDelete('users', appData.users[i].id); await loadAllData(); renderAll(); }
 
 /* ── Badge ─────────────────────────────────────────────────────────────────── */
 function badge(text, color) {
@@ -209,14 +240,14 @@ function openModal(id)  { qs(`#${id}`).classList.add('active'); }
 function closeModal(id) { qs(`#${id}`).classList.remove('active'); }
 function getFormData(f) { return Object.fromEntries(new FormData(f).entries()); }
 
-/* ── Form submit handlers ───────────────────────────────────────────────────── */
-function addLokasi(e)      { e.preventDefault(); const d=getFormData(e.target); appData.lokasi.push({name:d.name,address:d.address,district:d.district,status:'Aktif',lat:parseFloat(d.lat)||-6.9,lng:parseFloat(d.lng)||107.7}); closeModal('modalLokasi'); e.target.reset(); renderAll(); initMap(); }
-function addRelawan(e)     { e.preventDefault(); const d=getFormData(e.target); appData.relawan.push({name:d.name,phone:d.phone,job:d.job,position:d.position,location:d.location}); closeModal('modalRelawan'); e.target.reset(); renderAll(); }
-function addPenerima(e)    { e.preventDefault(); const d=getFormData(e.target); appData.penerima.push({name:d.name,address:d.address,phone:d.phone,asnaf:d.asnaf,location:d.location}); closeModal('modalPenerima'); e.target.reset(); renderAll(); }
-function addDonasi(e)      { e.preventDefault(); const d=getFormData(e.target); appData.donasi.push({donor:d.donor,month:d.month,location:d.location,type:d.type,value:d.value,notes:d.notes}); closeModal('modalDonasi'); e.target.reset(); renderAll(); }
-function addPaket(e)       { e.preventDefault(); const d=getFormData(e.target); appData.paket.push({date:d.date,location:d.location,pj:d.pj,cost:Number(d.cost),created:Number(d.created),distributed:Number(d.distributed),status:d.status}); closeModal('modalPaket'); e.target.reset(); renderAll(); }
-function addDokumentasi(e) { e.preventDefault(); const d=getFormData(e.target); appData.dokumentasi.push({title:d.title,date:d.date,location:d.location,category:'Umum',desc:d.desc}); closeModal('modalDokumentasi'); e.target.reset(); renderAll(); }
-function addUser(e)        { e.preventDefault(); const d=getFormData(e.target); appData.users.push({name:d.name,email:d.email,role:d.role,location:d.location||'Semua Titik',status:'Aktif'}); closeModal('modalUser'); e.target.reset(); renderAll(); }
+/* ── Form submit handlers — now POST to API ──────────────────────────────── */
+async function addLokasi(e)      { e.preventDefault(); const d=getFormData(e.target); await apiPost('lokasi', {name:d.name,address:d.address,district:d.district,status:'Aktif',lat:parseFloat(d.lat)||-6.9,lng:parseFloat(d.lng)||107.7}); closeModal('modalLokasi'); e.target.reset(); await loadAllData(); renderAll(); initMap(); }
+async function addRelawan(e)     { e.preventDefault(); const d=getFormData(e.target); await apiPost('relawan', {name:d.name,phone:d.phone,job:d.job,position:d.position,location:d.location}); closeModal('modalRelawan'); e.target.reset(); await loadAllData(); renderAll(); }
+async function addPenerima(e)    { e.preventDefault(); const d=getFormData(e.target); await apiPost('penerima', {name:d.name,address:d.address,phone:d.phone,asnaf:d.asnaf,location:d.location}); closeModal('modalPenerima'); e.target.reset(); await loadAllData(); renderAll(); }
+async function addDonasi(e)      { e.preventDefault(); const d=getFormData(e.target); await apiPost('donasi', {donor:d.donor,month:d.month,location:d.location,type:d.type,value:d.value,notes:d.notes}); closeModal('modalDonasi'); e.target.reset(); await loadAllData(); renderAll(); }
+async function addPaket(e)       { e.preventDefault(); const d=getFormData(e.target); await apiPost('paket', {date:d.date,location:d.location,pj:d.pj,cost:Number(d.cost),created:Number(d.created),distributed:Number(d.distributed),status:d.status}); closeModal('modalPaket'); e.target.reset(); await loadAllData(); renderAll(); }
+async function addDokumentasi(e) { e.preventDefault(); const d=getFormData(e.target); await apiPost('dokumentasi', {title:d.title,date:d.date,location:d.location,category:'Umum',desc:d.desc}); closeModal('modalDokumentasi'); e.target.reset(); await loadAllData(); renderAll(); }
+async function addUser(e)        { e.preventDefault(); const d=getFormData(e.target); await apiPost('users', {name:d.name,email:d.email,password:d.password||'Anggota123!',role:d.role,location:d.location||'Semua Titik',status:'Aktif'}); closeModal('modalUser'); e.target.reset(); await loadAllData(); renderAll(); }
 
 /* ── Filter ─────────────────────────────────────────────────────────────────── */
 function filterTable(value, tableId) {
@@ -481,6 +512,9 @@ qsa('.menu-item').forEach(btn => btn.addEventListener('click', () => setPage(btn
 qs('#hamburger').addEventListener('click', () => qs('#sidebar').classList.toggle('open'));
 qs('#jumlahPaket').addEventListener('input', updateTotals);
 
-renderAll();
-initCharts();
-initMap();
+(async function init() {
+  await loadAllData();
+  renderAll();
+  initCharts();
+  initMap();
+})();

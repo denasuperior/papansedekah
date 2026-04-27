@@ -315,9 +315,7 @@
       btn.disabled    = true;
       btn.textContent = 'Memeriksa…';
 
-      // Simulasi network delay (hapus di produksi, langsung panggil API)
-      setTimeout(() => {
-        const result = AUTH.login(email, password);
+      AUTH.login(email, password).then(result => {
         if (result.success) {
           btn.textContent = '✓ Berhasil, mengalihkan…';
           window.location.replace('index.html');
@@ -329,7 +327,7 @@
           document.getElementById('password').value = '';
           document.getElementById('password').focus();
         }
-      }, 500);
+      });
     }
 
     // Hapus error saat user mulai mengetik

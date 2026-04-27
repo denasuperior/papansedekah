@@ -25,23 +25,43 @@ const AUTH = (() => {
   }
 
   /**
-   * Coba login. Kembalikan { success, user } atau { success: false }.
+   * Coba login via API. Fallback ke hardcoded credentials jika API tidak tersedia.
    */
-  function login(email, password) {
-    const found = CREDENTIALS.find(
-      c => c.email === email.trim().toLowerCase() && c.password === password
-    );
-    if (!found) return { success: false };
-
-    const session = {
-      token:     _generateToken(),
-      name:      found.name,
-      email:     found.email,
-      role:      found.role,
-      loginTime: Date.now()
-    };
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    return { success: true, user: session };
+  async function login(email, password) {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        const session = {
+          token:     _generateToken(),
+          name:      data.user.name,
+          email:     data.user.email,
+          role:      data.user.role,
+          loginTime: Date.now()
+        };
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        return { success: true, user: session };
+      }
+      return { success: false };
+    } catch {
+      const found = CREDENTIALS.find(
+        c => c.email === email.trim().toLowerCase() && c.password === password
+      );
+      if (!found) return { success: false };
+      const session = {
+        token:     _generateToken(),
+        name:      found.name,
+        email:     found.email,
+        role:      found.role,
+        loginTime: Date.now()
+      };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      return { success: true, user: session };
+    }
   }
 
   /** Hapus sesi dan arahkan ke halaman login. */
