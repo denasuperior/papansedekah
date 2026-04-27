@@ -19,14 +19,17 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 /* ── Generic CRUD helper ──────────────────────────────────────────────────── */
-function crudRoutes(route, table, columns) {
+function crudRoutes(route, table, columns, opts = {}) {
+  const hideFields = opts.hideFromGet || [];
+  const selectCols = columns.filter(c => !hideFields.includes(c)).join(', ');
+
   app.get(`/api/${route}`, (_req, res) => {
-    const rows = db.prepare(`SELECT * FROM ${table}`).all();
+    const rows = db.prepare(`SELECT ${selectCols} FROM ${table}`).all();
     res.json(rows);
   });
 
   app.get(`/api/${route}/:id`, (req, res) => {
-    const row = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
+    const row = db.prepare(`SELECT ${selectCols} FROM ${table} WHERE id = ?`).get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Data tidak ditemukan.' });
     res.json(row);
   });
@@ -36,16 +39,19 @@ function crudRoutes(route, table, columns) {
     const placeholders = cols.map(() => '?').join(', ');
     const values = cols.map(c => req.body[c] ?? null);
     const result = db.prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`).run(...values);
-    const row = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(result.lastInsertRowid);
+    const row = db.prepare(`SELECT ${selectCols} FROM ${table} WHERE id = ?`).get(result.lastInsertRowid);
     res.status(201).json(row);
   });
 
   app.put(`/api/${route}/:id`, (req, res) => {
-    const cols = columns.filter(c => c !== 'id');
+    const cols = columns.filter(c => c !== 'id').filter(c => {
+      if (hideFields.includes(c) && !req.body[c]) return false;
+      return true;
+    });
     const sets = cols.map(c => `${c} = ?`).join(', ');
     const values = cols.map(c => req.body[c] ?? null);
     db.prepare(`UPDATE ${table} SET ${sets} WHERE id = ?`).run(...values, req.params.id);
-    const row = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
+    const row = db.prepare(`SELECT ${selectCols} FROM ${table} WHERE id = ?`).get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Data tidak ditemukan.' });
     res.json(row);
   });
@@ -64,7 +70,7 @@ crudRoutes('penerima', 'penerima', ['id', 'name', 'address', 'phone', 'asnaf', '
 crudRoutes('donasi', 'donasi', ['id', 'donor', 'month', 'location', 'type', 'value', 'notes']);
 crudRoutes('paket', 'paket', ['id', 'date', 'location', 'pj', 'cost', 'created', 'distributed', 'status']);
 crudRoutes('dokumentasi', 'dokumentasi', ['id', 'title', 'date', 'location', 'category', 'desc']);
-crudRoutes('users', 'users', ['id', 'name', 'email', 'password', 'role', 'location', 'status']);
+crudRoutes('users', 'users', ['id', 'name', 'email', 'password', 'role', 'location', 'status'], { hideFromGet: ['password'] });
 
 /* ── SPA fallback ─────────────────────────────────────────────────────────── */
 app.get('/{*path}', (_req, res) => {
