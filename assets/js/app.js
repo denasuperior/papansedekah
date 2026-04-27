@@ -18,6 +18,9 @@ async function apiDelete(endpoint, id) {
 async function apiPost(endpoint, data) {
   return api(endpoint, { method: 'POST', body: data });
 }
+async function apiPut(endpoint, id, data) {
+  return api(`${endpoint}/${id}`, { method: 'PUT', body: data });
+}
 async function loadAllData() {
   const [lokasi, relawan, penerima, donasi, paket, dokumentasi, users] = await Promise.all([
     api('lokasi'), api('relawan'), api('penerima'), api('donasi'),
@@ -77,16 +80,57 @@ function setPage(page) {
   qs('#sidebar').classList.remove('open');
 }
 
+/* ── Edit state ───────────────────────────────────────────────────────────── */
+let editingId = null;
+let editingType = null;
+
+function startEdit(type, i) {
+  const row = appData[type][i];
+  editingId = row.id;
+  editingType = type;
+  const modalMap = {
+    lokasi: 'modalLokasi', relawan: 'modalRelawan', penerima: 'modalPenerima',
+    donasi: 'modalDonasi', paket: 'modalPaket', dokumentasi: 'modalDokumentasi', users: 'modalUser'
+  };
+  const modal = modalMap[type];
+  const form = qs(`#${modal} form`);
+  const title = qs(`#${modal} h3`);
+  const titles = {
+    lokasi:'Edit Lokasi', relawan:'Edit Relawan', penerima:'Edit Penerima',
+    donasi:'Edit Donasi', paket:'Edit Paket', dokumentasi:'Edit Dokumentasi', users:'Edit Admin'
+  };
+  title.textContent = titles[type] || 'Edit';
+  Object.keys(row).forEach(key => {
+    if (key === 'id') return;
+    const input = form.elements[key];
+    if (input) input.value = row[key] ?? '';
+  });
+  openModal(modal);
+}
+
+function resetEditState(modalId) {
+  editingId = null;
+  editingType = null;
+  const form = qs(`#${modalId} form`);
+  const title = qs(`#${modalId} h3`);
+  const addTitles = {
+    modalLokasi:'Tambah Lokasi', modalRelawan:'Tambah Relawan', modalPenerima:'Tambah Penerima Manfaat',
+    modalDonasi:'Tambah Donasi', modalPaket:'Tambah Laporan Paket', modalDokumentasi:'Upload Dokumentasi', modalUser:'Tambah Admin'
+  };
+  title.textContent = addTitles[modalId] || 'Tambah';
+  form.reset();
+}
+
 /* ── Table renderer ────────────────────────────────────────────────────────── */
-function renderTable(id, rows, columns, onDelete) {
+function renderTable(id, rows, columns, onDelete, editType) {
   const tbody = qs(`#${id} tbody`);
   if (!tbody) return;
   tbody.innerHTML = rows.map((row, i) => {
     const cells = columns.map(col => `<td>${col(row)}</td>`).join('');
     const actions = onDelete
       ? `<td><div class="act-btns">
-           <button class="act-edit-btn" title="Edit" onclick="alert('Fitur edit akan tersedia di versi backend.')">${SVG.edit}</button>
-           <button class="act-del-btn"  title="Hapus" onclick="if(confirm('Hapus data ini?')){${onDelete}(${i});renderAll();}">${SVG.trash}</button>
+           <button class="act-edit-btn" title="Edit" onclick="startEdit('${editType}',${i})">${SVG.edit}</button>
+           <button class="act-del-btn"  title="Hapus" onclick="if(confirm('Hapus data ini?')){${onDelete}(${i})}">${SVG.trash}</button>
          </div></td>`
       : '';
     return `<tr>${cells}${actions}</tr>`;
@@ -127,15 +171,15 @@ function renderAll() {
   renderTable('tableLokasi', appData.lokasi, [
     r => r.name, r => r.address, r => r.district, r => badge(r.status),
     r => `${r.lat}, ${r.lng}`
-  ], 'delLokasi');
+  ], 'delLokasi', 'lokasi');
 
   renderTable('tableRelawan', appData.relawan, [
     r => r.name, r => r.phone, r => r.job, r => badge(r.position), r => r.location
-  ], 'delRelawan');
+  ], 'delRelawan', 'relawan');
 
   renderTable('tablePenerima', appData.penerima, [
     r => r.name, r => r.address, r => r.phone, r => badge(r.asnaf, 'blue'), r => r.location
-  ], 'delPenerima');
+  ], 'delPenerima', 'penerima');
 
   renderTable('tableDonasi', appData.donasi, [
     r => r.donor,
@@ -144,7 +188,7 @@ function renderAll() {
     r => badge(r.type, r.type.includes('Cash') ? 'green' : 'yellow'),
     r => r.type.includes('Cash') ? rupiah(parseFloat(r.value)) : r.value,
     r => r.notes,
-  ], 'delDonasi');
+  ], 'delDonasi', 'donasi');
 
   renderTable('tablePaket', appData.paket, [
     r => r.date,
@@ -155,11 +199,11 @@ function renderAll() {
     r => r.distributed,
     r => r.created - r.distributed,
     r => badge(r.status),
-  ], 'delPaket');
+  ], 'delPaket', 'paket');
 
   renderTable('tableUser', appData.users, [
     r => r.name, r => r.email, r => badge(r.role), r => r.location, r => badge(r.status)
-  ], 'delUser');
+  ], 'delUser', 'users');
 
   /* dokumentasi cards */
   const docCfg = {
@@ -227,8 +271,8 @@ function renderAll() {
         <td>${r.location.replace('Papan Sedekah ', '')}</td>
         <td>${r.phone}</td>
         <td><div class="act-btns">
-          <button class="act-edit-btn" title="Edit" onclick="alert('Fitur edit akan tersedia di versi backend.')">${SVG.edit}</button>
-          <button class="act-del-btn"  title="Hapus" onclick="if(confirm('Hapus data ini?')){delPenerima(${realIdx});renderAll();}">${SVG.trash}</button>
+          <button class="act-edit-btn" title="Edit" onclick="startEdit('penerima',${realIdx})">${SVG.edit}</button>
+          <button class="act-del-btn"  title="Hapus" onclick="if(confirm('Hapus data ini?')){delPenerima(${realIdx})}">${SVG.trash}</button>
         </div></td>
       </tr>`;
     }).join('');
@@ -240,14 +284,49 @@ function openModal(id)  { qs(`#${id}`).classList.add('active'); }
 function closeModal(id) { qs(`#${id}`).classList.remove('active'); }
 function getFormData(f) { return Object.fromEntries(new FormData(f).entries()); }
 
-/* ── Form submit handlers — now POST to API ──────────────────────────────── */
-async function addLokasi(e)      { e.preventDefault(); const d=getFormData(e.target); await apiPost('lokasi', {name:d.name,address:d.address,district:d.district,status:'Aktif',lat:parseFloat(d.lat)||-6.9,lng:parseFloat(d.lng)||107.7}); closeModal('modalLokasi'); e.target.reset(); await loadAllData(); renderAll(); initMap(); }
-async function addRelawan(e)     { e.preventDefault(); const d=getFormData(e.target); await apiPost('relawan', {name:d.name,phone:d.phone,job:d.job,position:d.position,location:d.location}); closeModal('modalRelawan'); e.target.reset(); await loadAllData(); renderAll(); }
-async function addPenerima(e)    { e.preventDefault(); const d=getFormData(e.target); await apiPost('penerima', {name:d.name,address:d.address,phone:d.phone,asnaf:d.asnaf,location:d.location}); closeModal('modalPenerima'); e.target.reset(); await loadAllData(); renderAll(); }
-async function addDonasi(e)      { e.preventDefault(); const d=getFormData(e.target); await apiPost('donasi', {donor:d.donor,month:d.month,location:d.location,type:d.type,value:d.value,notes:d.notes}); closeModal('modalDonasi'); e.target.reset(); await loadAllData(); renderAll(); }
-async function addPaket(e)       { e.preventDefault(); const d=getFormData(e.target); await apiPost('paket', {date:d.date,location:d.location,pj:d.pj,cost:Number(d.cost),created:Number(d.created),distributed:Number(d.distributed),status:d.status}); closeModal('modalPaket'); e.target.reset(); await loadAllData(); renderAll(); }
-async function addDokumentasi(e) { e.preventDefault(); const d=getFormData(e.target); await apiPost('dokumentasi', {title:d.title,date:d.date,location:d.location,category:'Umum',desc:d.desc}); closeModal('modalDokumentasi'); e.target.reset(); await loadAllData(); renderAll(); }
-async function addUser(e)        { e.preventDefault(); const d=getFormData(e.target); await apiPost('users', {name:d.name,email:d.email,password:d.password||'Anggota123!',role:d.role,location:d.location||'Semua Titik',status:'Aktif'}); closeModal('modalUser'); e.target.reset(); await loadAllData(); renderAll(); }
+/* ── Form submit handlers — POST or PUT depending on edit state ───────────── */
+async function addLokasi(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {name:d.name,address:d.address,district:d.district,status:d.status||'Aktif',lat:parseFloat(d.lat)||-6.9,lng:parseFloat(d.lng)||107.7};
+  if (editingId && editingType==='lokasi') { await apiPut('lokasi',editingId,data); } else { await apiPost('lokasi',data); }
+  resetEditState('modalLokasi'); closeModal('modalLokasi'); await loadAllData(); renderAll(); initMap();
+}
+async function addRelawan(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {name:d.name,phone:d.phone,job:d.job,position:d.position,location:d.location};
+  if (editingId && editingType==='relawan') { await apiPut('relawan',editingId,data); } else { await apiPost('relawan',data); }
+  resetEditState('modalRelawan'); closeModal('modalRelawan'); await loadAllData(); renderAll();
+}
+async function addPenerima(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {name:d.name,address:d.address,phone:d.phone,asnaf:d.asnaf,location:d.location};
+  if (editingId && editingType==='penerima') { await apiPut('penerima',editingId,data); } else { await apiPost('penerima',data); }
+  resetEditState('modalPenerima'); closeModal('modalPenerima'); await loadAllData(); renderAll();
+}
+async function addDonasi(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {donor:d.donor,month:d.month,location:d.location,type:d.type,value:d.value,notes:d.notes};
+  if (editingId && editingType==='donasi') { await apiPut('donasi',editingId,data); } else { await apiPost('donasi',data); }
+  resetEditState('modalDonasi'); closeModal('modalDonasi'); await loadAllData(); renderAll();
+}
+async function addPaket(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {date:d.date,location:d.location,pj:d.pj,cost:Number(d.cost),created:Number(d.created),distributed:Number(d.distributed),status:d.status};
+  if (editingId && editingType==='paket') { await apiPut('paket',editingId,data); } else { await apiPost('paket',data); }
+  resetEditState('modalPaket'); closeModal('modalPaket'); await loadAllData(); renderAll();
+}
+async function addDokumentasi(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {title:d.title,date:d.date,location:d.location,category:d.category||'Umum',desc:d.desc};
+  if (editingId && editingType==='dokumentasi') { await apiPut('dokumentasi',editingId,data); } else { await apiPost('dokumentasi',data); }
+  resetEditState('modalDokumentasi'); closeModal('modalDokumentasi'); await loadAllData(); renderAll();
+}
+async function addUser(e) {
+  e.preventDefault(); const d=getFormData(e.target);
+  const data = {name:d.name,email:d.email,password:d.password||'Anggota123!',role:d.role,location:d.location||'Semua Titik',status:d.status||'Aktif'};
+  if (editingId && editingType==='users') { await apiPut('users',editingId,data); } else { await apiPost('users',data); }
+  resetEditState('modalUser'); closeModal('modalUser'); await loadAllData(); renderAll();
+}
 
 /* ── Filter ─────────────────────────────────────────────────────────────────── */
 function filterTable(value, tableId) {

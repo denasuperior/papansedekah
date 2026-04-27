@@ -535,7 +535,7 @@
 <!-- ── MODALS ────────────────────────────────────────────────────────────── -->
 <div class="modal" id="modalLokasi">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalLokasi')">×</button>
+    <button class="close" onclick="resetEditState('modalLokasi');closeModal('modalLokasi')">×</button>
     <h3>Tambah Lokasi</h3>
     <form class="form" onsubmit="addLokasi(event)">
       <label class="form-label">Nama Titik/Lokasi<input name="name" placeholder="Contoh: Papan Sedekah Masjid Al Ikhlas" required></label>
@@ -543,6 +543,7 @@
       <label class="form-label">Kecamatan<input name="district" placeholder="Contoh: Cibiru" required></label>
       <label class="form-label">Latitude<input name="lat" placeholder="-6.9344"></label>
       <label class="form-label">Longitude<input name="lng" placeholder="107.7175"></label>
+      <label class="form-label">Status<select name="status"><option>Aktif</option><option>Tidak Aktif</option></select></label>
       <button class="primary-btn">Simpan</button>
     </form>
   </div>
@@ -550,7 +551,7 @@
 
 <div class="modal" id="modalRelawan">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalRelawan')">×</button>
+    <button class="close" onclick="resetEditState('modalRelawan');closeModal('modalRelawan')">×</button>
     <h3>Tambah Relawan</h3>
     <form class="form" onsubmit="addRelawan(event)">
       <label class="form-label">Nama Lengkap<input name="name" placeholder="Contoh: Siti Aminah" required></label>
@@ -565,7 +566,7 @@
 
 <div class="modal" id="modalPenerima">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalPenerima')">×</button>
+    <button class="close" onclick="resetEditState('modalPenerima');closeModal('modalPenerima')">×</button>
     <h3>Tambah Penerima Manfaat</h3>
     <form class="form" onsubmit="addPenerima(event)">
       <label class="form-label">Nama Penerima<input name="name" placeholder="Contoh: Ibu Marni" required></label>
@@ -582,7 +583,7 @@
 
 <div class="modal" id="modalDonasi">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalDonasi')">×</button>
+    <button class="close" onclick="resetEditState('modalDonasi');closeModal('modalDonasi')">×</button>
     <h3>Tambah Donasi</h3>
     <form class="form" onsubmit="addDonasi(event)">
       <label class="form-label">Nama Donatur<input name="donor" placeholder="Contoh: Hamba Allah" required></label>
@@ -598,7 +599,7 @@
 
 <div class="modal" id="modalPaket">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalPaket')">×</button>
+    <button class="close" onclick="resetEditState('modalPaket');closeModal('modalPaket')">×</button>
     <h3>Tambah Laporan Paket</h3>
     <form class="form" onsubmit="addPaket(event)">
       <label class="form-label">Tanggal<input name="date" type="date" required></label>
@@ -615,7 +616,7 @@
 
 <div class="modal" id="modalDokumentasi">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalDokumentasi')">×</button>
+    <button class="close" onclick="resetEditState('modalDokumentasi');closeModal('modalDokumentasi')">×</button>
     <h3>Upload Dokumentasi</h3>
     <form class="form" onsubmit="addDokumentasi(event)">
       <label class="form-label">Judul Dokumentasi<input name="title" placeholder="Contoh: Penyaluran Paket April" required></label>
@@ -630,11 +631,12 @@
 
 <div class="modal" id="modalUser">
   <div class="modal-card">
-    <button class="close" onclick="closeModal('modalUser')">×</button>
+    <button class="close" onclick="resetEditState('modalUser');closeModal('modalUser')">×</button>
     <h3>Tambah Admin</h3>
     <form class="form" onsubmit="addUser(event)">
       <label class="form-label">Nama Admin<input name="name" placeholder="Nama lengkap" required></label>
       <label class="form-label">Email<input name="email" type="email" placeholder="email@amalbunda.org" required></label>
+      <label class="form-label">Password<input name="password" type="password" placeholder="Minimal 6 karakter"></label>
       <label class="form-label">Role / Hak Akses<select name="role"><option>Super Admin</option><option>Koordinator</option><option>Anggota</option></select></label>
       <label class="form-label">Titik Tugas<input name="location" placeholder="Kosongkan untuk Super Admin"></label>
       <button class="primary-btn">Simpan</button>
