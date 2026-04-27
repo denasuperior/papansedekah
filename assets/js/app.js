@@ -49,6 +49,7 @@ function setPage(page) {
 /* ── Table renderer ────────────────────────────────────────────────────────── */
 function renderTable(id, rows, columns, onDelete) {
   const tbody = qs(`#${id} tbody`);
+  if (!tbody) return;
   tbody.innerHTML = rows.map((row, i) => {
     const cells = columns.map(col => `<td>${col(row)}</td>`).join('');
     const actions = onDelete

@@ -391,11 +391,25 @@
     <section class="content page" id="paket">
       <div class="panel">
         <div class="panel-head">
-          <h3>Manajemen Paket Sedekah</h3>
+          <h3>Laporan Paket Sedekah</h3>
           <button class="primary-btn" onclick="openModal('modalPaket')">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Buat Paket Baru
           </button>
+        </div>
+        <div class="filters">
+          <input type="search" placeholder="Cari paket..." oninput="filterTable(this.value, 'tablePaket')">
+        </div>
+        <div class="table-wrap">
+          <table id="tablePaket">
+            <thead><tr><th>Tanggal</th><th>Lokasi</th><th>Penanggung Jawab</th><th>Biaya</th><th>Dibuat</th><th>Disalurkan</th><th>Sisa</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Buat Paket Baru</h3>
         </div>
         <div class="paket-management">
           <div class="paket-info">
