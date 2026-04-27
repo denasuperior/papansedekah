@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papan Sedekah - LAZ Amal Bunda</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+<!-- ── SVG SPRITE ─────────────────────────────────────────────────────────── -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- brand heart -->
+  <symbol id="ic-heart-fill" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </symbol>
+  <!-- home -->
+  <symbol id="ic-home" viewBox="0 0 24 24">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <!-- map-pin -->
+  <symbol id="ic-pin" viewBox="0 0 24 24">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+  </symbol>
+  <!-- users -->
+  <symbol id="ic-users" viewBox="0 0 24 24">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </symbol>
+  <!-- heart outline -->
+  <symbol id="ic-heart" viewBox="0 0 24 24">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </symbol>
+  <!-- dollar-sign -->
+  <symbol id="ic-money" viewBox="0 0 24 24">
+    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+  </symbol>
+  <!-- package -->
+  <symbol id="ic-package" viewBox="0 0 24 24">
+    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+  </symbol>
+  <!-- camera -->
+  <symbol id="ic-camera" viewBox="0 0 24 24">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+  </symbol>
+  <!-- file-text -->
+  <symbol id="ic-report" viewBox="0 0 24 24">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+  </symbol>
+  <!-- shield -->
+  <symbol id="ic-shield" viewBox="0 0 24 24">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </symbol>
+  <!-- log-out -->
+  <symbol id="ic-logout" viewBox="0 0 24 24">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+  </symbol>
+  <!-- menu (hamburger) -->
+  <symbol id="ic-menu" viewBox="0 0 24 24">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </symbol>
+  <!-- search -->
+  <symbol id="ic-search" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </symbol>
+  <!-- bell -->
+  <symbol id="ic-bell" viewBox="0 0 24 24">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </symbol>
+  <!-- user circle -->
+  <symbol id="ic-user" viewBox="0 0 24 24">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </symbol>
+  <!-- pencil (edit) -->
+  <symbol id="ic-edit" viewBox="0 0 24 24">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </symbol>
+  <!-- trash -->
+  <symbol id="ic-trash" viewBox="0 0 24 24">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+  </symbol>
+  <!-- gift -->
+  <symbol id="ic-gift" viewBox="0 0 24 24">
+    <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/>
+    <line x1="12" y1="22" x2="12" y2="7"/>
+    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+  </symbol>
+  <!-- message-square (rapat) -->
+  <symbol id="ic-chat" viewBox="0 0 24 24">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <!-- check-circle -->
+  <symbol id="ic-check" viewBox="0 0 24 24">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+    <polyline points="22 4 12 14.01 9 11.01"/>
+  </symbol>
+  <!-- people/hand -->
+  <symbol id="ic-hand" viewBox="0 0 24 24">
+    <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+    <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+    <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  </symbol>
+</svg>
+
+<div class="app">
+  <!-- ── SIDEBAR ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg class="nav-icon" style="fill:#fff;stroke:none"><use href="#ic-heart-fill"/></svg>
+      </div>
+      <div>
+        <h1>Papan Sedekah</h1>
+        <p>LAZ Amal Bunda</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <button class="menu-item active" data-page="dashboard">
+        <svg class="nav-icon"><use href="#ic-home"/></svg> Dashboard
+      </button>
+      <button class="menu-item" data-page="lokasi">
+        <svg class="nav-icon"><use href="#ic-pin"/></svg> Titik/Lokasi
+      </button>
+      <button class="menu-item" data-page="relawan">
+        <svg class="nav-icon"><use href="#ic-users"/></svg> Relawan
+      </button>
+      <button class="menu-item" data-page="penerima">
+        <svg class="nav-icon"><use href="#ic-heart"/></svg> Penerima Manfaat
+      </button>
+      <button class="menu-item" data-page="donatur">
+        <svg class="nav-icon"><use href="#ic-money"/></svg> Donatur &amp; Donasi
+      </button>
+      <button class="menu-item" data-page="paket">
+        <svg class="nav-icon"><use href="#ic-package"/></svg> Paket Sedekah
+      </button>
+      <button class="menu-item" data-page="dokumentasi">
+        <svg class="nav-icon"><use href="#ic-camera"/></svg> Dokumentasi
+      </button>
+      <button class="menu-item" data-page="laporan">
+        <svg class="nav-icon"><use href="#ic-report"/></svg> Laporan
+      </button>
+      <button class="menu-item" data-page="pengguna">
+        <svg class="nav-icon"><use href="#ic-shield"/></svg> Admin &amp; Role
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-logout" onclick="AUTH.logout()">
+        <svg class="nav-icon"><use href="#ic-logout"/></svg> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="hamburger" id="hamburger">
+        <svg class="nav-icon"><use href="#ic-menu"/></svg>
+      </button>
+      <div>
+        <h2 id="pageTitle">Dashboard</h2>
+        <p id="pageDesc">Ringkasan program Papan Sedekah</p>
+      </div>
+      <div class="topbar-right">
+        <div class="search-bar">
+          <svg class="nav-icon"><use href="#ic-search"/></svg>
+          <input type="text" placeholder="Cari sesuatu..." id="globalSearch">
+        </div>
+        <button class="topbar-bell" title="Notifikasi">
+          <svg class="nav-icon"><use href="#ic-bell"/></svg>
+        </button>
+        <div class="user-box">
+          <div class="user-avatar">
+            <svg class="nav-icon"><use href="#ic-user"/></svg>
+          </div>
+          <div class="user-info">
+            <span id="currentUserName">Admin</span>
+            <small id="currentUserRole">Super Admin</small>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── DASHBOARD ────────────────────────────────────────────────────── -->
+    <section class="content page active" id="dashboard">
+
+      <!-- Stat Cards -->
+      <div class="cards-grid">
+        <div class="stat-card" data-color="teal">
+          <div class="stat-icon-wrap"><svg class="nav-icon"><use href="#ic-pin"/></svg></div>
+          <div class="stat-body">
+            <span class="stat-label">Total Titik Aktif</span>
+            <strong id="totalLokasi" class="stat-value">0</strong>
+            <small class="stat-sub">Lokasi papan sedekah</small>
+          </div>
+        </div>
+        <div class="stat-card" data-color="blue">
+          <div class="stat-icon-wrap"><svg class="nav-icon"><use href="#ic-users"/></svg></div>
+          <div class="stat-body">
+            <span class="stat-label">Total Relawan</span>
+            <strong id="totalRelawan" class="stat-value">0</strong>
+            <small class="stat-sub">Koordinator dan anggota</small>
+          </div>
+        </div>
+        <div class="stat-card" data-color="rose">
+          <div class="stat-icon-wrap"><svg class="nav-icon"><use href="#ic-heart"/></svg></div>
+          <div class="stat-body">
+            <span class="stat-label">Penerima Manfaat</span>
+            <strong id="totalPenerima" class="stat-value">0</strong>
+            <small class="stat-sub">Data penerima bantuan</small>
+          </div>
+        </div>
+        <div class="stat-card" data-color="green">
+          <div class="stat-icon-wrap"><svg class="nav-icon"><use href="#ic-money"/></svg></div>
+          <div class="stat-body">
+            <span class="stat-label">Donasi Cash</span>
+            <strong id="totalCash" class="stat-value">Rp0</strong>
+            <small class="stat-sub">Total donasi uang</small>
+          </div>
+        </div>
+        <div class="stat-card" data-color="amber">
+          <div class="stat-icon-wrap"><svg class="nav-icon"><use href="#ic-package"/></svg></div>
+          <div class="stat-body">
+            <span class="stat-label">Paket Dibuat</span>
+            <strong id="paketDibuat" class="stat-value">0</strong>
+            <small class="stat-sub">Total paket sedekah</small>
+          </div>
+        </div>
+        <div class="stat-card" data-color="purple">
+          <div class="stat-icon-wrap"><svg class="nav-icon"><use href="#ic-check"/></svg></div>
+          <div class="stat-body">
+            <span class="stat-label">Paket Disalurkan</span>
+            <strong id="paketSalur" class="stat-value">0</strong>
+            <small class="stat-sub">Paket tersalurkan</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="dashboard-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>Distribusi Penerima</h3><span>Kategori Asnaf</span></div>
+          <div class="doughnut-wrap">
+            <canvas id="asnafChart"></canvas>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Donasi Cash per Bulan</h3><span>2026</span></div>
+          <canvas id="donasiChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Map + Activity Row -->
+      <div class="dashboard-grid map-row">
+        <div class="panel">
+          <div class="panel-head"><h3>Peta Sebaran Titik</h3><span>OpenStreetMap</span></div>
+          <div id="map"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Aktivitas Terbaru</h3><span>5 data terakhir</span></div>
+          <ul class="activity-list" id="activityList"></ul>
+        </div>
+      </div>
+
+      <!-- Recent Penerima Table -->
+      <div class="panel" style="margin-top:18px">
+        <div class="panel-head">
+          <h3>Data Penerima Terbaru</h3>
+          <button class="see-all-btn" onclick="setPage('penerima')">Lihat Semua</button>
+        </div>
+        <div class="table-wrap">
+          <table class="recent-table" id="dashRecentTable">
+            <thead>
+              <tr>
+                <th>Nama</th><th>Asnaf</th><th>Alamat</th><th>Titik Penerimaan</th><th>HP</th><th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── LOKASI ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="lokasi">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Data Titik/Lokasi</h3>
+          <button class="primary-btn" onclick="openModal('modalLokasi')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Lokasi
+          </button>
+        </div>
+        <div class="filters">
+          <input type="search" placeholder="Cari lokasi..." oninput="filterTable(this.value, 'tableLokasi')">
+          <select><option>Semua Status</option><option>Aktif</option><option>Tidak Aktif</option></select>
+        </div>
+        <div class="table-wrap">
+          <table id="tableLokasi">
+            <thead><tr><th>Nama Titik</th><th>Alamat</th><th>Kecamatan</th><th>Status</th><th>Koordinat</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RELAWAN ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="relawan">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Data Relawan</h3>
+          <button class="primary-btn" onclick="openModal('modalRelawan')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Relawan
+          </button>
+        </div>
+        <div class="filters">
+          <input type="search" placeholder="Cari relawan..." oninput="filterTable(this.value, 'tableRelawan')">
+          <select><option>Semua Jabatan</option><option>Koordinator</option><option>Anggota</option></select>
+        </div>
+        <div class="table-wrap">
+          <table id="tableRelawan">
+            <thead><tr><th>Nama</th><th>HP</th><th>Pekerjaan</th><th>Jabatan</th><th>Titik Tugas</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PENERIMA ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="penerima">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Data Penerima Manfaat</h3>
+          <button class="primary-btn" onclick="openModal('modalPenerima')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Penerima
+          </button>
+        </div>
+        <div class="filters">
+          <input type="search" placeholder="Cari penerima..." oninput="filterTable(this.value, 'tablePenerima')">
+          <select><option>Semua Asnaf</option><option>Fakir</option><option>Miskin</option><option>Fisabilillah</option><option>Gharim</option><option>Ibnu Sabil</option></select>
+        </div>
+        <div class="table-wrap">
+          <table id="tablePenerima">
+            <thead><tr><th>Nama</th><th>Alamat</th><th>HP</th><th>Kategori Asnaf</th><th>Titik Penerimaan</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DONATUR ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="donatur">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Data Donatur &amp; Donasi</h3>
+          <button class="primary-btn" onclick="openModal('modalDonasi')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Donasi
+          </button>
+        </div>
+        <div class="filters">
+          <input type="search" placeholder="Cari donatur/donasi..." oninput="filterTable(this.value, 'tableDonasi')">
+          <select><option>Semua Jenis</option><option>Cash/Rp</option><option>Natura/Barang</option></select>
+        </div>
+        <div class="table-wrap">
+          <table id="tableDonasi">
+            <thead><tr><th>Donatur</th><th>Bulan</th><th>Titik</th><th>Jenis</th><th>Nominal/Barang</th><th>Catatan</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PAKET ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="paket">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Manajemen Paket Sedekah</h3>
+          <button class="primary-btn" onclick="openModal('modalPaket')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Buat Paket Baru
+          </button>
+        </div>
+        <div class="paket-management">
+          <div class="paket-info">
+            <h4>Informasi Paket</h4>
+            <label class="form-label">Nama Paket <input id="paketName" placeholder="Contoh: Paket Ramadhan 2026" required></label>
+            <label class="form-label">Tanggal Dibuat <input id="paketDate" type="date" required></label>
+            <label class="form-label">Deskripsi <textarea id="paketDesc" placeholder="Deskripsi paket..."></textarea></label>
+          </div>
+          <div class="paket-contents">
+            <h4>Isi Paket</h4>
+            <div class="table-wrap">
+              <table class="item-table">
+                <thead>
+                  <tr><th>Nama Barang</th><th>Satuan</th><th>Harga Satuan</th><th>Jumlah</th><th>Subtotal</th><th>Aksi</th></tr>
+                </thead>
+                <tbody id="itemList">
+                  <!-- Items will be added here -->
+                </tbody>
+              </table>
+            </div>
+            <button class="add-item-btn" onclick="addItem()">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Item
+            </button>
+          </div>
+          <div class="paket-summary">
+            <h4>Ringkasan Paket</h4>
+            <div class="summary-item">
+              <span>Total Harga 1 Paket:</span>
+              <strong id="totalPerPaket">Rp0</strong>
+            </div>
+            <label class="form-label">Jumlah Paket <input id="jumlahPaket" type="number" value="1" min="1"></label>
+            <div class="summary-item">
+              <span>Total Keseluruhan:</span>
+              <strong id="totalKeseluruhan">Rp0</strong>
+            </div>
+            <button class="primary-btn" onclick="savePaket()">Simpan Paket</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DOKUMENTASI ────────────────────────────────────────────────────── -->
+    <section class="content page" id="dokumentasi">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Dokumentasi Kegiatan</h3>
+          <button class="primary-btn" onclick="openModal('modalDokumentasi')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Upload Dokumentasi
+          </button>
+        </div>
+        <div class="doc-grid" id="docGrid"></div>
+      </div>
+    </section>
+
+    <!-- ── LAPORAN ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="laporan">
+      <div class="panel">
+        <div class="panel-head"><h3>Export Laporan</h3><span>PDF &amp; Excel</span></div>
+        <div class="report-grid">
+          <button onclick="exportCSV('relawan')">
+            <div class="report-icon"><svg class="nav-icon"><use href="#ic-users"/></svg></div>
+            <strong>Relawan per Titik</strong>
+            <small>Data nama, HP, jabatan, dan lokasi tugas relawan</small>
+          </button>
+          <button onclick="exportCSV('lokasi')">
+            <div class="report-icon"><svg class="nav-icon"><use href="#ic-pin"/></svg></div>
+            <strong>Titik / Lokasi</strong>
+            <small>Daftar titik papan sedekah, status, dan koordinat</small>
+          </button>
+          <button onclick="exportCSV('penerima')">
+            <div class="report-icon"><svg class="nav-icon"><use href="#ic-heart"/></svg></div>
+            <strong>Penerima Manfaat</strong>
+            <small>Nama, kategori asnaf, alamat, dan titik penerimaan</small>
+          </button>
+          <button onclick="exportCSV('donasi')">
+            <div class="report-icon"><svg class="nav-icon"><use href="#ic-money"/></svg></div>
+            <strong>Donatur Bulanan</strong>
+            <small>Rekap donasi cash dan natura per bulan per titik</small>
+          </button>
+          <button onclick="exportCSV('paket')">
+            <div class="report-icon"><svg class="nav-icon"><use href="#ic-package"/></svg></div>
+            <strong>Paket Sedekah</strong>
+            <small>Laporan paket dibuat, disalurkan, sisa, dan status</small>
+          </button>
+          <button onclick="window.print()">
+            <div class="report-icon">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
+            </div>
+            <strong>Cetak / Simpan PDF</strong>
+            <small>Print halaman aktif atau simpan sebagai file PDF</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PENGGUNA ────────────────────────────────────────────────────────── -->
+    <section class="content page" id="pengguna">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Admin dan Role</h3>
+          <button class="primary-btn" onclick="openModal('modalUser')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Admin
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table id="tableUser">
+            <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Titik Tugas</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── MODALS ────────────────────────────────────────────────────────────── -->
+<div class="modal" id="modalLokasi">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalLokasi')">×</button>
+    <h3>Tambah Lokasi</h3>
+    <form class="form" onsubmit="addLokasi(event)">
+      <label class="form-label">Nama Titik/Lokasi<input name="name" placeholder="Contoh: Papan Sedekah Masjid Al Ikhlas" required></label>
+      <label class="form-label">Alamat Lengkap<textarea name="address" placeholder="Jl. Melati RT 02 RW 04, Desa Sukamaju" required></textarea></label>
+      <label class="form-label">Kecamatan<input name="district" placeholder="Contoh: Cibiru" required></label>
+      <label class="form-label">Latitude<input name="lat" placeholder="-6.9344"></label>
+      <label class="form-label">Longitude<input name="lng" placeholder="107.7175"></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalRelawan">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalRelawan')">×</button>
+    <h3>Tambah Relawan</h3>
+    <form class="form" onsubmit="addRelawan(event)">
+      <label class="form-label">Nama Lengkap<input name="name" placeholder="Contoh: Siti Aminah" required></label>
+      <label class="form-label">Nomor HP<input name="phone" placeholder="0812-xxxx-xxxx"></label>
+      <label class="form-label">Pekerjaan<input name="job" placeholder="Contoh: Guru, Wiraswasta"></label>
+      <label class="form-label">Jabatan<select name="position"><option>Koordinator</option><option>Anggota</option></select></label>
+      <label class="form-label">Titik Tugas<input name="location" placeholder="Nama titik papan sedekah" required></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalPenerima">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalPenerima')">×</button>
+    <h3>Tambah Penerima Manfaat</h3>
+    <form class="form" onsubmit="addPenerima(event)">
+      <label class="form-label">Nama Penerima<input name="name" placeholder="Contoh: Ibu Marni" required></label>
+      <label class="form-label">Alamat<textarea name="address" placeholder="RT/RW, Kelurahan, Kecamatan"></textarea></label>
+      <label class="form-label">Nomor HP<input name="phone" placeholder="0812-xxxx-xxxx"></label>
+      <label class="form-label">Kategori Asnaf
+        <select name="asnaf"><option>Fakir</option><option>Miskin</option><option>Amil</option><option>Mualaf</option><option>Gharim</option><option>Fisabilillah</option><option>Ibnu Sabil</option><option>Lainnya</option></select>
+      </label>
+      <label class="form-label">Titik Penerimaan<input name="location" placeholder="Nama titik papan sedekah" required></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalDonasi">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalDonasi')">×</button>
+    <h3>Tambah Donasi</h3>
+    <form class="form" onsubmit="addDonasi(event)">
+      <label class="form-label">Nama Donatur<input name="donor" placeholder="Contoh: Hamba Allah" required></label>
+      <label class="form-label">Bulan Donasi<input name="month" type="month" required></label>
+      <label class="form-label">Titik/Lokasi Tujuan<input name="location" placeholder="Nama titik papan sedekah" required></label>
+      <label class="form-label">Jenis Donasi<select name="type"><option>Cash/Rp</option><option>Natura/Barang</option></select></label>
+      <label class="form-label">Nominal atau Deskripsi Barang<input name="value" placeholder="Contoh: 500000 atau Beras 25 kg" required></label>
+      <label class="form-label">Catatan<textarea name="notes" placeholder="Informasi tambahan..."></textarea></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalPaket">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalPaket')">×</button>
+    <h3>Tambah Laporan Paket</h3>
+    <form class="form" onsubmit="addPaket(event)">
+      <label class="form-label">Tanggal<input name="date" type="date" required></label>
+      <label class="form-label">Titik/Lokasi<input name="location" placeholder="Nama titik papan sedekah" required></label>
+      <label class="form-label">Penanggung Jawab<input name="pj" placeholder="Nama koordinator/relawan PJ" required></label>
+      <label class="form-label">Total Biaya (Rp)<input name="cost" type="number" placeholder="Contoh: 1650000" required></label>
+      <label class="form-label">Jumlah Paket Dibuat<input name="created" type="number" placeholder="Contoh: 50" required></label>
+      <label class="form-label">Jumlah Paket Disalurkan<input name="distributed" type="number" placeholder="Contoh: 48" required></label>
+      <label class="form-label">Status<select name="status"><option>Draft</option><option>Diajukan</option><option>Terverifikasi</option><option>Perlu Revisi</option></select></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalDokumentasi">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalDokumentasi')">×</button>
+    <h3>Upload Dokumentasi</h3>
+    <form class="form" onsubmit="addDokumentasi(event)">
+      <label class="form-label">Judul Dokumentasi<input name="title" placeholder="Contoh: Penyaluran Paket April" required></label>
+      <label class="form-label">Tanggal Kegiatan<input name="date" type="date" required></label>
+      <label class="form-label">Titik/Lokasi<input name="location" placeholder="Nama titik papan sedekah" required></label>
+      <label class="form-label">Deskripsi Kegiatan<textarea name="desc" placeholder="Ceritakan singkat kegiatan..."></textarea></label>
+      <label class="form-label">File Foto / PDF<input name="file" type="file" accept="image/*,.pdf"></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalUser">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal('modalUser')">×</button>
+    <h3>Tambah Admin</h3>
+    <form class="form" onsubmit="addUser(event)">
+      <label class="form-label">Nama Admin<input name="name" placeholder="Nama lengkap" required></label>
+      <label class="form-label">Email<input name="email" type="email" placeholder="email@amalbunda.org" required></label>
+      <label class="form-label">Role / Hak Akses<select name="role"><option>Super Admin</option><option>Koordinator</option><option>Anggota</option></select></label>
+      <label class="form-label">Titik Tugas<input name="location" placeholder="Kosongkan untuk Super Admin"></label>
+      <button class="primary-btn">Simpan</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>AUTH.requireAuth();</script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  (function() {
+    const user = AUTH.getCurrentUser();
+    if (!user) return;
+    const nameEl = document.getElementById('currentUserName');
+    const roleEl = document.getElementById('currentUserRole');
+    if (nameEl) nameEl.textContent = user.name;
+    if (roleEl) roleEl.textContent = user.role;
+  })();
+</script>
+</body>
+</html>

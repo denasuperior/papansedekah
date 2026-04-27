@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Papan Sedekah LAZ Amal Bunda</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(15,118,110,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(15,118,110,0.10) 0%, transparent 50%);
+      padding: 24px;
+    }
+
+    .login-wrap { width: 100%; max-width: 460px; }
+
+    /* Brand header above card */
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .brand-logo {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: #0f766e;
+      display: grid; place-items: center;
+      font-size: 18px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 8px 24px rgba(15,118,110,0.4);
+    }
+    .brand-text h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+    .brand-text p  { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+    /* Card */
+    .login-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .card-title   { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .card-subtitle { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
+
+    /* Alert */
+    .alert {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fef2f2;
+      border: 1.5px solid #fecaca;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #dc2626;
+      line-height: 1.5;
+    }
+    .alert.show { display: flex; }
+    .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* Form */
+    .form { display: grid; gap: 18px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 600; color: #374151; }
+
+    .input-wrap { position: relative; }
+    .input-wrap .input-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; pointer-events: none; color: #9ca3af;
+    }
+    .input-wrap input {
+      width: 100%;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px 14px 12px 40px;
+      font: inherit;
+      font-size: 15px;
+      color: #0f172a;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      background: #fff;
+    }
+    .input-wrap input::placeholder { color: #9ca3af; }
+    .input-wrap input:focus {
+      border-color: #0f766e;
+      box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+    }
+    .input-wrap input.is-error {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.10);
+    }
+
+    /* Password toggle */
+    .toggle-pw {
+      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      font-size: 16px; color: #9ca3af; line-height: 1;
+    }
+    .toggle-pw:hover { color: #6b7280; }
+    .input-wrap input[type="password"] { padding-right: 42px; }
+
+    .field-msg {
+      font-size: 12px; color: #ef4444;
+      display: none; margin-top: -2px;
+    }
+    .field-msg.show { display: block; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      background: #0f766e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s, opacity .2s;
+      margin-top: 4px;
+    }
+    .submit-btn:hover:not(:disabled)  { background: #115e59; }
+    .submit-btn:active:not(:disabled) { transform: scale(.99); }
+    .submit-btn:disabled { opacity: .65; cursor: not-allowed; }
+
+    /* Demo hint */
+    .demo-hint {
+      margin-top: 24px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #166534;
+    }
+    .demo-hint strong { display: block; margin-bottom: 8px; }
+    .demo-accounts { display: grid; gap: 6px; }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .demo-row span { color: #4b5563; }
+    code {
+      background: #dcfce7;
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: #14532d;
+    }
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    @media (max-width: 500px) {
+      .login-card { padding: 28px 24px; }
+      .card-title { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-wrap">
+
+    <div class="login-brand">
+      <div class="brand-logo">PS</div>
+      <div class="brand-text">
+        <h1>Papan Sedekah</h1>
+        <p>LAZ Amal Bunda — Panel Admin</p>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <h2 class="card-title">Selamat Datang 👋</h2>
+      <p class="card-subtitle">Masuk untuk mengelola program Papan Sedekah</p>
+
+      <div class="alert" id="alertError" role="alert">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>Login gagal.</strong><br>
+          Email atau password salah. Periksa kembali dan coba lagi.
+        </div>
+      </div>
+
+      <form class="form" id="loginForm" onsubmit="handleLogin(event)" novalidate>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input
+              type="email" id="email" name="email"
+              placeholder="email@amalbunda.org"
+              autocomplete="email"
+              inputmode="email"
+            >
+          </div>
+          <span class="field-msg" id="emailMsg"></span>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password" id="password" name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            >
+            <button type="button" class="toggle-pw" id="togglePw" aria-label="Tampilkan password">👁️</button>
+          </div>
+          <span class="field-msg" id="passwordMsg"></span>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" type="submit">Masuk</button>
+
+      </form>
+
+      <div class="demo-hint">
+        <strong>🔑 Akun Demo</strong>
+        <div class="demo-accounts">
+          <div class="demo-row">
+            <span>Super Admin:</span>
+            <code>admin@amalbunda.org</code>
+            <span>/</span>
+            <code>Admin@2026</code>
+          </div>
+          <div class="demo-row">
+            <span>Koordinator:</span>
+            <code>siti@amalbunda.org</code>
+            <span>/</span>
+            <code>Koordinator1</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="login-footer">© 2026 LAZ Amal Bunda · Sistem Manajemen Papan Sedekah</p>
+
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    AUTH.requireGuest();
+
+    // Password visibility toggle
+    const pwInput  = document.getElementById('password');
+    const togglePw = document.getElementById('togglePw');
+    togglePw.addEventListener('click', () => {
+      const show = pwInput.type === 'password';
+      pwInput.type     = show ? 'text' : 'password';
+      togglePw.textContent = show ? '🙈' : '👁️';
+    });
+
+    function clearErrors() {
+      ['email', 'password'].forEach(id => {
+        document.getElementById(id).classList.remove('is-error');
+        const msg = document.getElementById(id + 'Msg');
+        msg.textContent = '';
+        msg.classList.remove('show');
+      });
+      document.getElementById('alertError').classList.remove('show');
+    }
+
+    function showFieldError(id, msg) {
+      const input = document.getElementById(id);
+      const span  = document.getElementById(id + 'Msg');
+      input.classList.add('is-error');
+      span.textContent = msg;
+      span.classList.add('show');
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      clearErrors();
+
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      let valid = true;
+
+      if (!email) {
+        showFieldError('email', 'Email tidak boleh kosong.');
+        valid = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showFieldError('email', 'Format email tidak valid.');
+        valid = false;
+      }
+
+      if (!password) {
+        showFieldError('password', 'Password tidak boleh kosong.');
+        valid = false;
+      } else if (password.length < 6) {
+        showFieldError('password', 'Password minimal 6 karakter.');
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Memeriksa…';
+
+      // Simulasi network delay (hapus di produksi, langsung panggil API)
+      setTimeout(() => {
+        const result = AUTH.login(email, password);
+        if (result.success) {
+          btn.textContent = '✓ Berhasil, mengalihkan…';
+          window.location.replace('index.html');
+        } else {
+          document.getElementById('alertError').classList.add('show');
+          document.getElementById('alertError').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          btn.disabled    = false;
+          btn.textContent = 'Masuk';
+          document.getElementById('password').value = '';
+          document.getElementById('password').focus();
+        }
+      }, 500);
+    }
+
+    // Hapus error saat user mulai mengetik
+    document.getElementById('email').addEventListener('input', clearErrors);
+    document.getElementById('password').addEventListener('input', clearErrors);
+  </script>
+</body>
+</html>
