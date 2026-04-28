@@ -216,6 +216,14 @@ function badge(text, color) {
 
 /* ── Render all tables + dashboard ─────────────────────────────────────────── */
 function renderAll() {
+  /* hide Aksi column header for non-SA users on tables that have no actions */
+  if (!_isSA) {
+    ['tableLokasi','tableRelawan','tablePenerima','tableDonasi'].forEach(id => {
+      const lastTh = qs(`#${id} thead th:last-child`);
+      if (lastTh && lastTh.textContent.trim() === 'Aksi') lastTh.style.display = 'none';
+    });
+  }
+
   /* stat cards */
   qs('#totalLokasi').textContent   = appData.lokasi.filter(l => l.status === 'Aktif').length;
   qs('#totalRelawan').textContent  = appData.relawan.length;
@@ -433,7 +441,8 @@ async function addDokumentasi(e) {
   if (isEdit && fd.get('file') && !fd.get('file').size) fd.delete('file');
   const url    = isEdit ? `${API_BASE}/dokumentasi/${editingId}` : `${API_BASE}/dokumentasi`;
   const method = isEdit ? 'PUT' : 'POST';
-  await fetch(url, { method, body: fd });
+  const res = await fetch(url, { method, body: fd });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); showToast(err.error || 'Gagal menyimpan dokumentasi.', 'error'); return; }
   resetEditState('modalDokumentasi'); closeModal('modalDokumentasi'); await loadAllData(); renderAll();
   showToast(isEdit ? 'Dokumentasi berhasil diperbarui!' : 'Dokumentasi berhasil diunggah!');
 }
