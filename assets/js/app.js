@@ -227,11 +227,11 @@ function renderAll() {
   ], _isSA ? 'delLokasi' : null, _isSA ? 'lokasi' : null);
 
   renderTable('tableRelawan', appData.relawan, [
-    r => r.name, r => r.phone, r => r.job, r => badge(r.position), r => r.location,
+    r => r.name, r => r.phone, r => r.job, r => badge(r.position), r => r.location.replace('Papan Sedekah ', ''),
   ], _isSA ? 'delRelawan' : null, _isSA ? 'relawan' : null);
 
   renderTable('tablePenerima', appData.penerima, [
-    r => r.name, r => r.address, r => r.phone, r => badge(r.asnaf, 'blue'), r => r.location,
+    r => r.name, r => r.address, r => r.phone, r => badge(r.asnaf, 'blue'), r => r.location.replace('Papan Sedekah ', ''),
   ], _isSA ? 'delPenerima' : null, _isSA ? 'penerima' : null);
 
   renderTable('tableDonasi', appData.donasi, [
