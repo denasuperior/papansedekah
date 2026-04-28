@@ -17,7 +17,9 @@ async function api(endpoint, options = {}) {
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
 }
 async function apiDelete(endpoint, id) {
   await fetch(`${API_BASE}/${endpoint}/${id}`, { method: 'DELETE' });
@@ -86,6 +88,7 @@ function setPage(page) {
   qs('#pageTitle').textContent = titles[page][0];
   qs('#pageDesc').textContent  = titles[page][1];
   qs('#sidebar').classList.remove('open');
+  const ov = qs('#sidebarOverlay'); if (ov) ov.classList.remove('show');
 }
 
 /* ── Edit state ───────────────────────────────────────────────────────────── */
