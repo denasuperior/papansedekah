@@ -144,10 +144,13 @@ function populateLocationDropdowns() {
     sel.innerHTML = `<option value="">— Pilih Lokasi —</option>${opts}`;
     if (current) sel.value = current;
   });
-  /* filter bar selects */
+  /* filter bar selects (use abbreviated names to match table cell text) */
+  const filterOpts = appData.lokasi
+    .map(l => { const short = l.name.replace('Papan Sedekah ', ''); return `<option value="${short}">${short}</option>`; })
+    .join('');
   qsa('.loc-filter-select').forEach(sel => {
     const current = sel.value;
-    sel.innerHTML = `<option value="">Semua Lokasi</option>${opts}`;
+    sel.innerHTML = `<option value="">Semua Lokasi</option>${filterOpts}`;
     if (current) sel.value = current;
   });
 }
@@ -169,7 +172,7 @@ function renderTable(id, rows, columns, onDelete, editType, extraBtns) {
     const editBtn = onDelete ? `<button class="act-edit-btn" title="Edit" onclick="startEdit('${editType}',${i})">${SVG.edit}</button>` : '';
     const delBtn  = onDelete ? `<button class="act-del-btn" title="Hapus" onclick="confirmDialog('Hapus data ini? Tindakan tidak dapat dibatalkan.', () => ${onDelete}(${i}))">${SVG.trash}</button>` : '';
     const extra   = extraBtns ? extraBtns(row, i) : '';
-    const actionHtml = (editBtn || delBtn || extra)
+    const actionHtml = (onDelete || extraBtns)
       ? `<td><div class="act-btns">${editBtn}${delBtn}${extra}</div></td>` : '';
     return `<tr>${cells}${actionHtml}</tr>`;
   }).join('');
