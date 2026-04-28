@@ -16,7 +16,20 @@ const storage = multer.diskStorage({
     cb(null, `doc-${Date.now()}${ext}`);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = /\.(jpe?g|png|gif|webp|pdf)$/i;
+    if (allowed.test(path.extname(file.originalname))) { cb(null, true); }
+    else { cb(new Error('Only image and PDF files are allowed'), false); }
+  },
+});
+
+function removeFile(fileUrl) {
+  if (!fileUrl) return;
+  try { fs.unlinkSync(path.join(__dirname, fileUrl)); } catch (_) { /* file already gone */ }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -94,12 +107,21 @@ app.put('/api/dokumentasi/:id', upload.single('file'), (req, res) => {
   const { title, date, location, category, desc } = req.body;
   const existing = db.prepare('SELECT file_url FROM dokumentasi WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Data tidak ditemukan.' });
+  if (req.file && existing.file_url) removeFile(existing.file_url);
   const file_url = req.file ? `/uploads/${req.file.filename}` : existing.file_url;
   db.prepare(
     'UPDATE dokumentasi SET title=?, date=?, location=?, category=?, desc=?, file_url=? WHERE id=?'
   ).run(title, date, location, category || 'Umum', desc || '', file_url, req.params.id);
   const row = db.prepare('SELECT * FROM dokumentasi WHERE id = ?').get(req.params.id);
   res.json(row);
+});
+
+app.delete('/api/dokumentasi/:id', (req, res) => {
+  const row = db.prepare('SELECT file_url FROM dokumentasi WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Data tidak ditemukan.' });
+  db.prepare('DELETE FROM dokumentasi WHERE id = ?').run(req.params.id);
+  removeFile(row.file_url);
+  res.json({ success: true });
 });
 
 /* ── Routes ───────────────────────────────────────────────────────────────── */

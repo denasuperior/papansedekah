@@ -458,7 +458,7 @@ function filterBySelect(selectEl, tableId, colIndex) {
   qsa(`#${tableId} tbody tr`).forEach(row => {
     if (!value || value.startsWith('Semua')) { row.style.display = ''; return; }
     const cell = row.querySelectorAll('td')[colIndex];
-    row.style.display = (cell && cell.textContent.includes(value)) ? '' : 'none';
+    row.style.display = (cell && cell.textContent.trim() === value) ? '' : 'none';
   });
 }
 
