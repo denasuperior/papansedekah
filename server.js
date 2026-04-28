@@ -1,7 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const db = require('./db/database');
+
+/* ── File upload setup ────────────────────────────────────────────────────── */
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+
+const storage = multer.diskStorage({
+  destination: uploadsDir,
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `doc-${Date.now()}${ext}`);
+  },
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +24,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+app.use('/uploads', express.static(uploadsDir));
 
 /* ── Auth ─────────────────────────────────────────────────────────────────── */
 app.post('/api/auth/login', (req, res) => {
@@ -63,13 +79,36 @@ function crudRoutes(route, table, columns, opts = {}) {
   });
 }
 
+/* ── Dokumentasi routes (file upload) ────────────────────────────────────── */
+app.post('/api/dokumentasi', upload.single('file'), (req, res) => {
+  const { title, date, location, category, desc } = req.body;
+  const file_url = req.file ? `/uploads/${req.file.filename}` : null;
+  const result = db.prepare(
+    'INSERT INTO dokumentasi (title, date, location, category, desc, file_url) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(title, date, location, category || 'Umum', desc || '', file_url);
+  const row = db.prepare('SELECT * FROM dokumentasi WHERE id = ?').get(result.lastInsertRowid);
+  res.status(201).json(row);
+});
+
+app.put('/api/dokumentasi/:id', upload.single('file'), (req, res) => {
+  const { title, date, location, category, desc } = req.body;
+  const existing = db.prepare('SELECT file_url FROM dokumentasi WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Data tidak ditemukan.' });
+  const file_url = req.file ? `/uploads/${req.file.filename}` : existing.file_url;
+  db.prepare(
+    'UPDATE dokumentasi SET title=?, date=?, location=?, category=?, desc=?, file_url=? WHERE id=?'
+  ).run(title, date, location, category || 'Umum', desc || '', file_url, req.params.id);
+  const row = db.prepare('SELECT * FROM dokumentasi WHERE id = ?').get(req.params.id);
+  res.json(row);
+});
+
 /* ── Routes ───────────────────────────────────────────────────────────────── */
 crudRoutes('lokasi', 'lokasi', ['id', 'name', 'address', 'district', 'status', 'lat', 'lng']);
 crudRoutes('relawan', 'relawan', ['id', 'name', 'phone', 'job', 'position', 'location']);
 crudRoutes('penerima', 'penerima', ['id', 'name', 'address', 'phone', 'asnaf', 'location']);
 crudRoutes('donasi', 'donasi', ['id', 'donor', 'month', 'location', 'type', 'value', 'notes']);
 crudRoutes('paket', 'paket', ['id', 'date', 'location', 'pj', 'cost', 'created', 'distributed', 'status']);
-crudRoutes('dokumentasi', 'dokumentasi', ['id', 'title', 'date', 'location', 'category', 'desc']);
+crudRoutes('dokumentasi', 'dokumentasi', ['id', 'title', 'date', 'location', 'category', 'desc', 'file_url']);
 crudRoutes('users', 'users', ['id', 'name', 'email', 'password', 'role', 'location', 'status'], { hideFromGet: ['password'] });
 
 /* ── SPA fallback ─────────────────────────────────────────────────────────── */

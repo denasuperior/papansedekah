@@ -465,10 +465,47 @@ svg { display: block; }
 }
 .doc-thumb-icon { width: 44px; height: 44px; }
 .doc-thumb-icon .nav-icon { width: 44px; height: 44px; stroke-width: 1.5; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
-.doc-card > div:last-child { padding: 14px; }
-.doc-card h4 { margin: 0 0 5px; font-size: 14px; font-weight: 600; }
-.doc-card p  { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.doc-card-body { padding: 14px; display: flex; flex-direction: column; flex: 1; }
+.doc-card h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+.doc-meta { margin: 0 0 4px; color: var(--muted); font-size: 12px; }
+.doc-desc { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; flex: 1; }
 .doc-cat-badge { display: inline-block; font-size: 11px; font-weight: 700; background: #f1f5f9; color: #475569; border-radius: 999px; padding: 3px 10px; margin-bottom: 6px; }
+
+.doc-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.doc-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-light);
+  border: 1px solid #99f6e4;
+  border-radius: 7px;
+  padding: 5px 10px;
+  text-decoration: none;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.doc-open-btn:hover { background: var(--primary); color: #fff; }
+.doc-no-file { font-size: 12px; color: var(--muted); font-style: italic; }
+
+.doc-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+}
+.doc-empty svg { width: 44px; height: 44px; stroke: var(--border); margin: 0 auto 12px; display: block; }
+.doc-empty p { margin: 0; font-size: 14px; }
 
 /* ===== REPORT GRID ===== */
 .report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -710,4 +747,230 @@ svg { display: block; }
   .cards-grid { grid-template-columns: 1fr; }
   .doc-grid, .report-grid { grid-template-columns: 1fr; }
   .filters { flex-direction: column; }
+  .topbar-bell { display: flex !important; }
+}
+
+/* ===== SIDEBAR OVERLAY (mobile) ===== */
+#sidebarOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 19;
+}
+#sidebarOverlay.show { display: block; }
+
+/* ===== TOAST NOTIFICATIONS ===== */
+#toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1e293b;
+  color: #f1f5f9;
+  border-radius: 12px;
+  padding: 13px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  pointer-events: auto;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s;
+  min-width: 240px;
+  max-width: 340px;
+}
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast-icon {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.toast-success .toast-icon { background: #10b981; color: #fff; }
+.toast-error   .toast-icon { background: #ef4444; color: #fff; }
+.toast-info    .toast-icon { background: #3b82f6; color: #fff; }
+.toast-warning .toast-icon { background: #f59e0b; color: #fff; }
+
+/* ===== STYLED CONFIRM DIALOG ===== */
+#confirmModal .modal-card { max-width: 380px; text-align: center; padding: 32px 28px; }
+#confirmModal .confirm-icon {
+  width: 52px; height: 52px;
+  background: #fee2e2;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  margin: 0 auto 16px;
+  font-size: 22px;
+}
+#confirmModal h3 { margin: 0 0 8px; font-size: 16px; }
+#confirmModal p  { color: var(--muted); font-size: 14px; margin: 0 0 24px; line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; justify-content: center; }
+.confirm-btns button { padding: 9px 22px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; border: 0; transition: background .15s; }
+.btn-cancel { background: var(--bg); color: var(--text); border: 1px solid var(--border) !important; }
+.btn-cancel:hover { background: var(--border); }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+
+/* ===== BELL DROPDOWN ===== */
+.bell-wrap { position: relative; flex-shrink: 0; }
+.bell-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  display: none;
+  overflow: hidden;
+}
+.bell-dropdown.open { display: block; }
+.bell-dropdown-head {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bell-dropdown-head span { color: var(--muted); font-size: 12px; font-weight: 500; }
+.bell-dropdown ul { list-style: none; margin: 0; padding: 8px; display: grid; gap: 4px; }
+.bell-dropdown li {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.bell-dropdown li .act-icon { width: 28px; height: 28px; border-radius: 7px; }
+.bell-dropdown li .act-body p { font-size: 12.5px; }
+.bell-dropdown li .act-body small { font-size: 11px; }
+.bell-badge {
+  position: absolute;
+  top: 0; right: 0;
+  width: 8px; height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid var(--panel);
+}
+.bell-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state-cell {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+.empty-state-cell svg {
+  width: 40px; height: 40px;
+  stroke: var(--border);
+  margin: 0 auto 10px;
+  display: block;
+}
+.empty-state-cell p { margin: 0; font-size: 14px; }
+
+/* ===== ROLE-BASED VISIBILITY ===== */
+/* sa-only: visible only to Super Admin */
+[data-role="koordinator"] .sa-only,
+[data-role="anggota"]     .sa-only { display: none !important; }
+
+/* coord-above: visible to Koordinator AND Super Admin; hidden from Anggota */
+[data-role="anggota"] .coord-above { display: none !important; }
+
+/* Koordinator & Anggota: cannot edit or delete */
+[data-role="koordinator"] .act-edit-btn,
+[data-role="koordinator"] .act-del-btn,
+[data-role="anggota"]     .act-edit-btn,
+[data-role="anggota"]     .act-del-btn { display: none !important; }
+
+/* ===== PAKET WORKFLOW BUTTONS ===== */
+.act-verify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 0;
+  background: #d1fae5;
+  color: #065f46;
+  cursor: pointer;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.act-verify-btn:hover { background: #a7f3d0; }
+.act-verify-btn .nav-icon { width: 14px; height: 14px; stroke-width: 2.5; }
+
+.act-ajukan-btn {
+  padding: 4px 10px;
+  border-radius: 7px;
+  border: 0;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.act-ajukan-btn:hover { background: #fde68a; }
+
+/* ===== ACTIVITY LIST — clickable rows ===== */
+.act-item-link {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background .15s;
+}
+.act-item-link:hover { background: var(--bg); }
+
+/* Bell dropdown — clickable rows */
+.bell-item-link {
+  cursor: pointer;
+  transition: background .12s;
+}
+.bell-item-link:hover { background: #e2e8f0 !important; }
+
+/* ===== IMPORT ICON VARIANT ===== */
+.import-icon {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe) !important;
+  color: #5b21b6 !important;
+}
+
+/* ===== LOCATION FILTER SELECTS ===== */
+.loc-filter-select {
+  min-width: 160px;
+}
+
+/* Bell badge — show count number instead of just dot */
+.bell-badge {
+  width: auto !important;
+  height: auto !important;
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 14px;
+  text-align: center;
 }
